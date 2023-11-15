@@ -38,7 +38,7 @@ Simpleimg* simpleimg_load(char* path) {
 		buf, (int)len, &w, &h, &c, STBI_rgb_alpha
 	);
 	// RGBA -> BGRA
-	for (size_t i = 0; i < h * w; i++) {
+	for (size_t i = 0; i < (size_t)h * (size_t)w; i++) {
 		uint8_t tmp = result->data[i * 4];
 		result->data[i * 4] = result->data[i * 4 + 2];
 		result->data[i * 4 + 2] = tmp;
