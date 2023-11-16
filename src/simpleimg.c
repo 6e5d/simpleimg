@@ -1,7 +1,9 @@
+#include <stdio.h>
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <stb/stb_image.h>
 
 #include "../include/simpleimg.h"
@@ -29,8 +31,7 @@ void simpleimg_print(Simpleimg* img) {
 	}
 }
 
-Simpleimg* simpleimg_load(char* path) {
-	Simpleimg* result = malloc(sizeof(Simpleimg));
+void simpleimg_load(Simpleimg* result, char* path) {
 	uint8_t *buf;
 	size_t len = wholefile_read(path, &buf);
 	int w, h, c;
@@ -45,11 +46,27 @@ Simpleimg* simpleimg_load(char* path) {
 	}
 	result->width = (uint32_t)w;
 	result->height = (uint32_t)h;
-	return result;
+	free(buf);
 }
 
-
-void simpleimg_destroy(Simpleimg* simpleimg) {
+void simpleimg_deinit(Simpleimg* simpleimg) {
 	free(simpleimg->data);
-	free(simpleimg);
+}
+
+uint8_t *simpleimg_offset(Simpleimg *img, uint32_t x, uint32_t y) {
+	return img->data + (img->width * y + x) * 4;
+}
+
+// paste whole src to offset of dst
+void simpleimg_paste(Simpleimg *src, Simpleimg *dst, uint32_t x, uint32_t y) {
+	uint32_t x2 = x + src->width;
+	uint32_t y2 = y + src->height;
+	assert(x2 <= dst->width);
+	assert(y2 <= dst->height);
+	for (uint32_t iy = 0; iy < src->height; iy += 1) {
+		uint8_t *psrc, *pdst;
+		psrc = simpleimg_offset(src, 0, iy);
+		pdst = simpleimg_offset(dst, 0, iy + y);
+		memcpy(pdst, psrc, 4 * src->width);
+	}
 }
