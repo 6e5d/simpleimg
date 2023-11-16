@@ -1,3 +1,6 @@
+#ifndef INCLUDEGUARD_SIMPLEIMG_SIMPLEIMGH
+#define INCLUDEGUARD_SIMPLEIMG_SIMPLEIMGH
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -12,3 +15,5 @@ void simpleimg_print(Simpleimg* img);
 void simpleimg_deinit(Simpleimg* simpleimg);
 uint8_t *simpleimg_offset(Simpleimg *img, uint32_t x, uint32_t y);
 void simpleimg_paste(Simpleimg *src, Simpleimg *dst, uint32_t x, uint32_t y);
+
+#endif
