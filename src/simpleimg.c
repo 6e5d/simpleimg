@@ -30,6 +30,12 @@ void simpleimg_print(Simpleimg* img) {
 	}
 }
 
+void simpleimg_new(Simpleimg* result, uint32_t w, uint32_t h) {
+	result->data = calloc(w * h * 4, sizeof(uint8_t));
+	result->width = w;
+	result->height = h;
+}
+
 void simpleimg_load(Simpleimg* result, char* path) {
 	int w, h, c;
 	result->data = stbi_load(
@@ -48,10 +54,6 @@ void simpleimg_load(Simpleimg* result, char* path) {
 
 void simpleimg_deinit(Simpleimg* simpleimg) {
 	free(simpleimg->data);
-}
-
-uint8_t *simpleimg_offset(Simpleimg *img, uint32_t x, uint32_t y) {
-	return img->data + (img->width * y + x) * 4;
 }
 
 // paste whole src to offset of dst
