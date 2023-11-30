@@ -1,8 +1,5 @@
-#ifndef INCLUDEGUARD_SIMPLEIMG_SIMPLEIMGH
-#define INCLUDEGUARD_SIMPLEIMG_SIMPLEIMGH
-
-#include <stddef.h>
-#include <stdint.h>
+#ifndef INCLUDEGUARD_SIMPLEIMG
+#define INCLUDEGUARD_SIMPLEIMG
 
 typedef struct {
 	uint8_t* data;
