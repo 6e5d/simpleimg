@@ -50,16 +50,41 @@ void simpleimg_deinit(Simpleimg* simpleimg) {
 	free(simpleimg->data);
 }
 
-// paste whole src to offset of dst
-void simpleimg_paste(Simpleimg *src, Simpleimg *dst, uint32_t x, uint32_t y) {
-	uint32_t x2 = x + src->width;
-	uint32_t y2 = y + src->height;
-	assert(x2 <= dst->width);
-	assert(y2 <= dst->height);
-	for (uint32_t iy = 0; iy < src->height; iy += 1) {
-		uint8_t *psrc, *pdst;
-		psrc = simpleimg_offset(src, 0, iy);
-		pdst = simpleimg_offset(dst, 0, iy + y);
-		memcpy(pdst, psrc, 4 * src->width);
+void simpleimg_clear(Simpleimg *img,
+	uint32_t x1, uint32_t y1, uint32_t w, uint32_t h
+) {
+	uint32_t x2 = x1 + w;
+	uint32_t y2 = y1 + h;
+	uint32_t offset = img->width * 4;
+	uint32_t copywidth = w * 4;
+	uint8_t *p = simpleimg_offset(img, x1, y1);
+	assert(x2 <= img->width);
+	assert(y2 <= img->height);
+	for (size_t i = y1; i < y2; i += 1) {
+		memset(p, 0, copywidth);
+		p += offset;
+	}
+}
+
+void simpleimg_paste(Simpleimg *src, Simpleimg *dst,
+	uint32_t w, uint32_t h,
+	uint32_t sx1, uint32_t sy1,
+	uint32_t dx1, uint32_t dy1
+) {
+	size_t soffset = (size_t)src->width * 4;
+	size_t doffset = (size_t)dst->width * 4;
+	size_t copywidth = (size_t)w * 4;
+
+	uint32_t sx2 = w + sx1; assert(sx2 <= src->width);
+	uint32_t sy2 = h + sy1; assert(sy2 <= src->height);
+	uint32_t dx2 = w + dx1; assert(dx2 <= dst->width);
+	uint32_t dy2 = h + dy1; assert(dy2 <= dst->height);
+
+	uint8_t *ps = simpleimg_offset(src, sx1, sy1);
+	uint8_t *pd = simpleimg_offset(dst, dx1, dy1);
+	for (uint32_t sy = sy1; sy < sy2; sy += 1) {
+		memcpy(pd, ps, copywidth);
+		*ps += soffset;
+		*pd += doffset;
 	}
 }
