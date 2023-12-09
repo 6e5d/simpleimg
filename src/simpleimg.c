@@ -31,27 +31,36 @@ void simpleimg_new(Simpleimg* result, uint32_t w, uint32_t h) {
 	result->height = h;
 }
 
+static void bgra2rgba(uint8_t* data, size_t w, size_t h) {
+	for (size_t i = 0; i < (size_t)h * (size_t)w; i++) {
+		uint8_t tmp = data[i * 4];
+		data[i * 4] = data[i * 4 + 2];
+		data[i * 4 + 2] = tmp;
+	}
+}
+
 void simpleimg_load(Simpleimg* result, char* path) {
 	int w, h, c;
 	result->data = stbi_load(
 		path, &w, &h, &c, STBI_rgb_alpha
 	);
 	assert(result->data != NULL);
-	// RGBA -> BGRA
-	for (size_t i = 0; i < (size_t)h * (size_t)w; i++) {
-		uint8_t tmp = result->data[i * 4];
-		result->data[i * 4] = result->data[i * 4 + 2];
-		result->data[i * 4 + 2] = tmp;
-	}
 	result->width = (uint32_t)w;
 	result->height = (uint32_t)h;
+	bgra2rgba(result->data, (size_t)w, (size_t)h);
 }
 
+// save make the whole copy which is not efficient
+// however stbi itself is already inefficient so we don't care about that
 void simpleimg_save(Simpleimg* img, char* path) {
-	printf("saving %s\n", path);
+	uint8_t *buffer = malloc(img->width * img->height * 4);
+	assert(buffer != NULL);
+	memcpy(buffer, img->data, img->width * img->height * 4);
+	bgra2rgba(buffer, img->width, img->height);
 	stbi_write_png(path, (int)img->width, (int)img->height,
-		4, img->data, (int)img->width * 4);
-	printf("saved\n");
+		4, buffer, (int)img->width * 4);
+	free(buffer);
+	printf("saved %s\n", path);
 }
 
 void simpleimg_deinit(Simpleimg* simpleimg) {
