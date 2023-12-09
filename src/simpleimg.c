@@ -1,4 +1,5 @@
 #include <stb/stb_image.h>
+#include <stb/stb_image_write.h>
 
 #include "../include/simpleimg.h"
 
@@ -46,8 +47,30 @@ void simpleimg_load(Simpleimg* result, char* path) {
 	result->height = (uint32_t)h;
 }
 
+void simpleimg_save(Simpleimg* img, char* path) {
+	printf("saving %s\n", path);
+	stbi_write_png(path, (int)img->width, (int)img->height,
+		4, img->data, (int)img->width * 4);
+	printf("saved\n");
+}
+
 void simpleimg_deinit(Simpleimg* simpleimg) {
 	free(simpleimg->data);
+}
+
+void simpleimg_pixelwise(Simpleimg *img,
+	uint32_t x1, uint32_t y1, uint32_t w, uint32_t h,
+	void (*op)(uint8_t*)
+) {
+	uint32_t x2 = x1 + w;
+	uint32_t y2 = y1 + h;
+	assert(x2 <= img->width);
+	assert(y2 <= img->height);
+	for (uint32_t y = y1; y < y2; y += 1) {
+		for (uint32_t x = x1; x < x2; x += 1) {
+			op(simpleimg_offset(img, x, y));
+		}
+	}
 }
 
 void simpleimg_clear(Simpleimg *img,
@@ -64,6 +87,10 @@ void simpleimg_clear(Simpleimg *img,
 		memset(p, 0, copywidth);
 		p += offset;
 	}
+}
+
+void simpleimg_clearall(Simpleimg *img) {
+	simpleimg_clear(img, 0, 0, img->width, img->height);
 }
 
 void simpleimg_paste(Simpleimg *src, Simpleimg *dst,
@@ -84,7 +111,7 @@ void simpleimg_paste(Simpleimg *src, Simpleimg *dst,
 	uint8_t *pd = simpleimg_offset(dst, dx1, dy1);
 	for (uint32_t sy = sy1; sy < sy2; sy += 1) {
 		memcpy(pd, ps, copywidth);
-		*ps += soffset;
-		*pd += doffset;
+		ps += soffset;
+		pd += doffset;
 	}
 }
