@@ -2,6 +2,7 @@
 #include <stb/stb_image_write.h>
 
 #include "../include/simpleimg.h"
+#define stbi_rgba STBI_rgb_alpha
 
 static uint8_t c4to256(uint8_t* color) {
 	uint8_t result = 0;
@@ -13,7 +14,7 @@ static uint8_t c4to256(uint8_t* color) {
 	return result + 16;
 }
 
-void simpleimg_print(Simpleimg* img) {
+void simpleimg(print)(Simpleimg()* img) {
 	for (size_t hh = 0; hh < img->height; hh += 2) {
 		for (size_t ww = 0; ww < img->width; ww += 1) {
 			uint8_t c = c4to256(
@@ -25,24 +26,24 @@ void simpleimg_print(Simpleimg* img) {
 	}
 }
 
-void simpleimg_new(Simpleimg* result, uint32_t w, uint32_t h) {
+void simpleimg(new)(Simpleimg()* result, uint32_t w, uint32_t h) {
 	result->data = calloc(w * h * 4, sizeof(uint8_t));
 	result->width = w;
 	result->height = h;
 }
 
 static void bgra2rgba(uint8_t* data, size_t w, size_t h) {
-	for (size_t i = 0; i < (size_t)h * (size_t)w; i++) {
+	for (size_t i = 0; i < (size_t)h * (size_t)w; i += 1) {
 		uint8_t tmp = data[i * 4];
 		data[i * 4] = data[i * 4 + 2];
 		data[i * 4 + 2] = tmp;
 	}
 }
 
-void simpleimg_load(Simpleimg* result, char* path) {
+void simpleimg(load)(Simpleimg()* result, char* path) {
 	int w, h, c;
 	result->data = stbi_load(
-		path, &w, &h, &c, STBI_rgb_alpha
+		path, &w, &h, &c, stbi_rgba
 	);
 	assert(result->data != NULL);
 	result->width = (uint32_t)w;
@@ -52,7 +53,7 @@ void simpleimg_load(Simpleimg* result, char* path) {
 
 // save make the whole copy which is not efficient
 // however stbi itself is already inefficient so we don't care about that
-void simpleimg_save(Simpleimg* img, char* path) {
+void simpleimg(save)(Simpleimg()* img, char* path) {
 	uint8_t *buffer = malloc(img->width * img->height * 4);
 	assert(buffer != NULL);
 	memcpy(buffer, img->data, img->width * img->height * 4);
@@ -63,11 +64,11 @@ void simpleimg_save(Simpleimg* img, char* path) {
 	printf("saved %s\n", path);
 }
 
-void simpleimg_deinit(Simpleimg* simpleimg) {
+void simpleimg(deinit)(Simpleimg()* simpleimg) {
 	free(simpleimg->data);
 }
 
-void simpleimg_pixelwise(Simpleimg *img,
+void simpleimg(pixelwise)(Simpleimg() *img,
 	uint32_t x1, uint32_t y1, uint32_t w, uint32_t h,
 	void (*op)(uint8_t*)
 ) {
@@ -77,19 +78,19 @@ void simpleimg_pixelwise(Simpleimg *img,
 	assert(y2 <= img->height);
 	for (uint32_t y = y1; y < y2; y += 1) {
 		for (uint32_t x = x1; x < x2; x += 1) {
-			op(simpleimg_offset(img, x, y));
+			op(simpleimg(offset)(img, x, y));
 		}
 	}
 }
 
-void simpleimg_clear(Simpleimg *img,
+void simpleimg(clear)(Simpleimg() *img,
 	uint32_t x1, uint32_t y1, uint32_t w, uint32_t h
 ) {
 	uint32_t x2 = x1 + w;
 	uint32_t y2 = y1 + h;
 	uint32_t offset = img->width * 4;
 	uint32_t copywidth = w * 4;
-	uint8_t *p = simpleimg_offset(img, x1, y1);
+	uint8_t *p = simpleimg(offset)(img, x1, y1);
 	assert(x2 <= img->width);
 	assert(y2 <= img->height);
 	for (size_t i = y1; i < y2; i += 1) {
@@ -98,11 +99,11 @@ void simpleimg_clear(Simpleimg *img,
 	}
 }
 
-void simpleimg_clearall(Simpleimg *img) {
-	simpleimg_clear(img, 0, 0, img->width, img->height);
+void simpleimg(clearall)(Simpleimg() *img) {
+	simpleimg(clear)(img, 0, 0, img->width, img->height);
 }
 
-void simpleimg_paste(Simpleimg *src, Simpleimg *dst,
+void simpleimg(paste)(Simpleimg() *src, Simpleimg() *dst,
 	uint32_t w, uint32_t h,
 	uint32_t sx1, uint32_t sy1,
 	uint32_t dx1, uint32_t dy1
@@ -116,11 +117,17 @@ void simpleimg_paste(Simpleimg *src, Simpleimg *dst,
 	uint32_t dx2 = w + dx1; assert(dx2 <= dst->width);
 	uint32_t dy2 = h + dy1; assert(dy2 <= dst->height);
 
-	uint8_t *ps = simpleimg_offset(src, sx1, sy1);
-	uint8_t *pd = simpleimg_offset(dst, dx1, dy1);
+	uint8_t *ps = simpleimg(offset)(src, sx1, sy1);
+	uint8_t *pd = simpleimg(offset)(dst, dx1, dy1);
 	for (uint32_t sy = sy1; sy < sy2; sy += 1) {
 		memcpy(pd, ps, copywidth);
 		ps += soffset;
 		pd += doffset;
 	}
 }
+
+uint8_t *simpleimg(offset)(Simpleimg() *img, uint32_t x, uint32_t y) {
+	return img->data + (img->width * y + x) * 4;
+}
+
+#endif
