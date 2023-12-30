@@ -1,6 +1,3 @@
-#ifndef INCLUDEGUARD_SIMPLEIMG
-#define INCLUDEGUARD_SIMPLEIMG
-
 typedef struct {
 	uint8_t* data;
 	uint32_t width;
@@ -23,5 +20,3 @@ void simpleimg(clear)(Simpleimg() *img,
 	uint32_t x1, uint32_t y1, uint32_t w, uint32_t h);
 void simpleimg(clearall)(Simpleimg() *img);
 uint8_t *simpleimg(offset)(Simpleimg() *img, uint32_t x, uint32_t y);
-
-#endif
